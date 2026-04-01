@@ -2,6 +2,104 @@
 
 Classifying strong gravitational lensing images into three substructure classes using a CNN baseline and a Fourier Neural Operator (FNO), built with PyTorch for the ML4SCI program.
 
+This gives FNO a global receptive field in a single layer.
+
+Advantages:
+- Captures long-range dependencies  
+- Produces smoother training curves  
+- Uses fewer parameters (~3× smaller than CNN)  
+
+Limitation:
+- Less effective at capturing fine local textures needed for class separation  
+
+---
+
+### 3. Class-wise Performance
+
+| Class | CNN Accuracy | FNO Accuracy |
+|-------|:------------:|:------------:|
+| no | 96.0% | 89.6% |
+| vort | 81.6% | 67.7% |
+| sphere | 76.0% | 63.1% |
+
+Interpretation:
+- Both models perform best on `no` (simplest class)  
+- Major confusion occurs between `vort` and `sphere`  
+- These classes have visually similar lensing patterns, making them harder to distinguish  
+
+---
+
+### 4. Why CNN Performs Better
+
+- Image resolution (150×150): CNN already captures global context with stacked layers  
+- Feature type: Task requires local edge and texture detection  
+- Model capacity: FNO (width=32, modes=24) has lower expressive power  
+- Task nature: Classification favors spatial feature extraction over function mapping  
+
+---
+
+## Why Use FNO?
+
+Despite lower accuracy, FNO offers important advantages:
+
+- Physics-aware modeling: Works in frequency space, aligning with physical processes  
+- Parameter efficiency: ~150K vs ~500K (CNN)  
+- Global receptive field: Captures full-image dependencies instantly  
+- Scalability: Expected to perform better on high-resolution and simulation-heavy tasks  
+
+---
+
+## CNN vs FNO Summary
+
+| Aspect | CNN | FNO |
+|--------|-----|-----|
+| Feature focus | Local | Global |
+| Best for | Texture, edges | Smooth structures |
+| Accuracy | Higher | Lower |
+| Parameters | Higher | Lower |
+| Training | Noisier | Smoother |
+
+---
+
+## Choice of Architecture
+
+We selected Fourier Neural Operator (FNO) over alternatives such as DeepONet because:
+
+- The dataset consists of regular grid images (150×150)  
+- FNO efficiently applies spectral convolution via FFT  
+- DeepONet is more suitable for irregular domains and continuous query-based problems  
+
+---
+
+## Strategy
+
+1. Built a CNN baseline to establish performance  
+2. Replaced convolution layers with SpectralConv2d (FNO)  
+3. Kept the same dataset, augmentations, and training pipeline  
+4. Evaluated using accuracy, ROC-AUC, and confusion matrices  
+
+---
+
+## Conclusion
+
+- CNN achieves the best performance for this classification task  
+- FNO demonstrates strong potential but requires:
+  - Higher capacity (more channels)  
+  - More Fourier modes  
+  - Higher-resolution inputs  
+
+Key Insight:  
+CNNs are better suited for low-resolution classification with local features, while FNOs are promising for physics-driven and high-resolution problems.
+
+---
+
+## Future Work
+
+- Increase FNO width (64 / 128)  
+- Tune number of Fourier modes  
+- Develop hybrid CNN + FNO model  
+- Train on higher-resolution lensing data  
+
 ---
 
 ## Dataset
@@ -175,6 +273,11 @@ The CNN achieves AUC > 0.93 on all three classes. The FNO achieves AUC > 0.86 on
 **CNN — 20 test samples (green = correct, red = wrong)**
 
 <img width="2010" height="1674" alt="predictions" src="https://github.com/user-attachments/assets/fef68eb8-5e28-47ad-8485-0a6950c8fe31" />
+
+**FNO — 20 test samples (green = correct, red = wrong)**
+
+<img width="2171" height="1871" alt="fno_predictions" src="https://github.com/user-attachments/assets/47c62e8e-4849-4d45-8d3a-c1136fed4372" />
+
 
 
 ---
